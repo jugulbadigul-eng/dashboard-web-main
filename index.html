@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complaint Tracking Dashboard</title>
+  <meta name="description" content="Complaint tracking and Dermalog escalation management dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item" id="nav-dashboard" onclick="showPage('dashboard')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-complaints" onclick="showPage('complaints')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5H19a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h4"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          <span class="nav-label">Complaints</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-new" onclick="showPage('new-complaint')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span class="nav-label">New</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="user-badge">CT</span>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- ========== DASHBOARD PAGE ========== -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Complaint tracking &amp; Dermalog escalations</p>
+          </div>
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="search-input" placeholder="Search tickets..." id="dashSearchInput" onkeyup="dashSearch()" />
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Total Tickets</span>
+              <span class="stat-value" id="statTotal">0</span>
+            </div>
+            <div class="stat-icon teal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5H19a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h4"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Open</span>
+              <span class="stat-value" id="statOpen">0</span>
+            </div>
+            <div class="stat-icon amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Closed</span>
+              <span class="stat-value" id="statClosed">0</span>
+            </div>
+            <div class="stat-icon slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Done</span>
+              <span class="stat-value" id="statDone">0</span>
+            </div>
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Pend/KIV</span>
+              <span class="stat-value" id="statPend">0</span>
+            </div>
+            <div class="stat-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-bottom">
+          <div class="recent-card">
+            <div class="recent-header">
+              <h2>Recent Complaints</h2>
+              <a href="#" class="view-all" onclick="showPage('complaints')">View all →</a>
+            </div>
+            <div id="recentList" class="recent-list"></div>
+          </div>
+          <div class="latest-card" id="latestCard">
+            <div class="latest-header">
+              <span class="latest-title">Most Recent</span>
+              <button class="btn-outline-sm" onclick="showPage('complaints')">See Details</button>
+            </div>
+            <div id="latestDetail"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== COMPLAINTS PAGE ========== -->
+      <section id="page-complaints" class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Complaints</h1>
+            <p class="page-subtitle">All customer complaints &amp; Dermalog escalations</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-outline" id="selectBtn" onclick="toggleSelectMode()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              Select
+            </button>
+            <button class="btn-outline" onclick="exportAllToExcel()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export All
+            </button>
+            <button class="btn-outline-teal" onclick="exportFilteredToExcel()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Filtered
+            </button>
+            <button class="btn-primary" onclick="showPage('new-complaint')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Complaint
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="search-input" placeholder="Search by ticket, customer, Dermalog..." id="filterSearch" oninput="applyFilters()" />
+          </div>
+          <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+            <option value="">All Statuses</option>
+            <option value="OPEN">Open</option>
+            <option value="CLOSED">Closed</option>
+            <option value="DONE">Done</option>
+            <option value="PEND/KIV">Pend/KIV</option>
+          </select>
+          <input type="date" class="filter-date" id="filterFrom" onchange="applyFilters()" />
+          <span class="date-sep">to</span>
+          <input type="date" class="filter-date" id="filterTo" onchange="applyFilters()" />
+          <button class="btn-primary" onclick="applyFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Apply
+          </button>
+        </div>
+
+        <!-- Bulk Action Bar (hidden unless select mode) -->
+        <div class="bulk-bar" id="bulkBar" style="display:none;">
+          <span id="selectedCount">0 selected</span>
+          <button class="btn-outline" onclick="exportSelectedToExcel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Selected
+          </button>
+          <button class="btn-danger" onclick="deleteSelected()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            Delete Selected
+          </button>
+          <button class="btn-outline" onclick="cancelSelectMode()">Cancel</button>
+        </div>
+
+        <div class="complaints-list" id="complaintsList"></div>
+        <p class="showing-label" id="showingLabel"></p>
+      </section>
+
+
+
+      <!-- ========== NEW COMPLAINT PAGE ========== -->
+      <section id="page-new-complaint" class="page">
+        <div class="page-header-back">
+          <button class="back-btn" onclick="showPage('complaints')">← Back to complaints</button>
+        </div>
+        <h1 class="page-title" id="formTitle">New Complaint</h1>
+        <p class="page-subtitle" id="formSubtitle">Enter customer complaint details and Dermalog escalation info.</p>
+
+        <form class="complaint-form" id="complaintForm" onsubmit="saveComplaint(event)">
+          <input type="hidden" id="editId" value="" />
+          <div class="form-card">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">TICKET ID <span class="required">*</span></label>
+                <input type="text" class="form-input" id="fTicketId" placeholder="e.g. TCK-001" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">DATE RECEIVED (COMPLAINT)</label>
+                <input type="date" class="form-input" id="fDateReceived" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">CUSTOMER</label>
+                <input type="text" class="form-input" id="fCustomer" placeholder="Customer name" />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">COMPLAINT DESCRIPTION</label>
+                <textarea class="form-textarea" id="fDescription" placeholder="Describe the complaint..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">DATE EMAIL TO DERMALOG</label>
+                <input type="date" class="form-input" id="fDateEmail" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">DERMALOG TICKET</label>
+                <input type="text" class="form-input" id="fDermalog" placeholder="Dermalog reference #" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">DATE RESPOND</label>
+                <input type="date" class="form-input" id="fDateRefusal" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">DATE RESOLVED</label>
+                <input type="date" class="form-input" id="fDateResolved" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Picture Attachments -->
+          <div class="form-card">
+            <h3 class="section-title">Picture Attachments</h3>
+            <p class="section-desc">Upload as many images as you need. No limit.</p>
+            <div class="attachment-zone" id="attachmentZone">
+              <div class="attachment-placeholder" id="attachmentPlaceholder">No attachments selected yet</div>
+              <div class="attachment-preview" id="attachmentPreview"></div>
+            </div>
+            <button type="button" class="btn-outline-teal upload-btn" onclick="document.getElementById('fileInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Add Files
+            </button>
+            <input type="file" id="fileInput" multiple accept="image/*" style="display:none" onchange="handleFiles(event)" />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="cancelForm()">Cancel</button>
+            <button type="submit" class="btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Complaint
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal" style="display:none">
+    <div class="modal-box">
+      <h3>Delete Complaint</h3>
+      <p>Are you sure you want to delete this complaint? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== EDIT DRAWER ========== -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="editDrawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-title" id="drawerTitle">Edit Ticket</div>
+        <div class="drawer-subtitle" id="drawerSubtitle"></div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Quick Status Bar -->
+    <div class="drawer-status-bar">
+      <span class="dsb-label">Status:</span>
+      <span class="status-badge" id="drawerCurrentBadge"></span>
+      <div class="dsb-actions">
+        <button class="qbtn qbtn-open"     onclick="quickStatus('OPEN')">Open</button>
+        <button class="qbtn qbtn-done"     onclick="quickStatus('DONE')">✓ Done</button>
+        <button class="qbtn qbtn-pend"     onclick="quickStatus('PEND/KIV')">⏳ Pend/KIV</button>
+        <button class="qbtn qbtn-closed"   onclick="quickStatus('CLOSED')">Closed</button>
+      </div>
+    </div>
+
+    <form class="drawer-form" id="drawerForm" onsubmit="saveDrawer(event)">
+      <input type="hidden" id="dEditId" />
+      <input type="hidden" id="dStatus" value="OPEN" />
+
+      <div class="drawer-fields">
+        <div class="dfield">
+          <label class="form-label">TICKET ID <span class="required">*</span></label>
+          <input type="text" class="form-input" id="dTicketId" required />
+        </div>
+        <div class="dfield">
+          <label class="form-label">CUSTOMER</label>
+          <input type="text" class="form-input" id="dCustomer" placeholder="Customer name" />
+        </div>
+        <div class="dfield">
+          <label class="form-label">DATE RECEIVED</label>
+          <input type="date" class="form-input" id="dDateReceived" />
+        </div>
+        <div class="dfield">
+          <label class="form-label">DATE EMAIL TO DERMALOG</label>
+          <input type="date" class="form-input" id="dDateEmail" />
+        </div>
+        <div class="dfield">
+          <label class="form-label">DERMALOG TICKET</label>
+          <input type="text" class="form-input" id="dDermalog" placeholder="Dermalog reference #" />
+        </div>
+        <div class="dfield">
+          <label class="form-label">DATE RESPOND</label>
+          <input type="date" class="form-input" id="dDateRefusal" />
+        </div>
+        <div class="dfield">
+          <label class="form-label">DATE RESOLVED</label>
+          <input type="date" class="form-input" id="dDateResolved" />
+        </div>
+        <div class="dfield dfield-full">
+          <label class="form-label">COMPLAINT DESCRIPTION</label>
+          <textarea class="form-textarea" id="dDescription" placeholder="Describe the complaint..." style="min-height:90px;"></textarea>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button type="button" class="btn-cancel" onclick="closeDrawer()">Cancel</button>
+        <button type="submit" class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
