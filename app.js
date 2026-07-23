@@ -1,4 +1,24 @@
 /* ===========================
+   SUPABASE INIT & SESSION
+=========================== */
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function checkSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+  }
+}
+checkSession();
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+/* ===========================
    APP STATE & STORAGE
 =========================== */
 const STORAGE_KEY = 'hilman_complaints_v2';
