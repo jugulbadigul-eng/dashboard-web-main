@@ -148,33 +148,46 @@ function dashSearch() {
 /* ===========================
    COMPLAINTS PAGE
 =========================== */
+function toggleSelectRow(e, id) {
+  if (selectMode && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && e.target.className !== 'complaint-checkbox') {
+    toggleSelect(id);
+    const cb = document.getElementById('chk-' + id);
+    if(cb) cb.checked = selectedIds.has(id);
+  }
+}
+
 function renderComplaints() {
   const list = document.getElementById('complaintsList');
   const label = document.getElementById('showingLabel');
 
   if (filteredComplaints.length === 0) {
-    list.innerHTML = '<div class="empty-state">No complaints match your filters.</div>';
+    list.innerHTML = '<tr><td colspan="10" class="done-empty">No complaints match your filters.</td></tr>';
     label.textContent = '';
     return;
   }
 
   list.innerHTML = filteredComplaints.map(c => `
-    <div class="complaint-item" id="ci-${c.id}" data-id="${c.id}">
-      <input type="checkbox" class="complaint-checkbox" id="chk-${c.id}" onchange="toggleSelect('${c.id}')" />
-      <div class="ticket-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5H19a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h4"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>
-      <div class="ticket-info" style="flex:1;">
-        <div class="ticket-id">${esc(c.id)}</div>
-        <div class="ticket-customer">${esc(c.customer || '—')}</div>
-      </div>
-      <span class="status-badge status-${statusKey(c.status)}">${esc(c.status)}</span>
-      <span class="ticket-date">${formatDate(c.dateReceived)}</span>
-      <div class="row-actions">
-        <button class="qbtn-row qbtn-row-edit"   onclick="openDrawer('${c.id}')"          title="Edit ticket">✏️ Edit</button>
-        <button class="qbtn-row qbtn-row-done"   onclick="quickStatusRow('${c.id}','DONE')"     title="Mark as Done">✓ Done</button>
-        <button class="qbtn-row qbtn-row-pend"   onclick="quickStatusRow('${c.id}','PEND/KIV')" title="Mark as Pend/KIV">⏳ Pend/KIV</button>
-        <button class="qbtn-row qbtn-row-delete" onclick="openDeleteModal('${c.id}')"     title="Delete">🗑</button>
-      </div>
-    </div>
+    <tr class="done-row ${selectedIds.has(c.id) ? 'selected' : ''}" id="ci-${c.id}">
+      <td class="col-checkbox" style="display:${selectMode ? 'table-cell' : 'none'};">
+        <input type="checkbox" class="complaint-checkbox" id="chk-${c.id}" onchange="toggleSelect('${c.id}')" ${selectedIds.has(c.id) ? 'checked' : ''} style="display:block; margin:0 auto;"/>
+      </td>
+      <td class="done-id" onclick="toggleSelectRow(event, '${c.id}')">${esc(c.id)}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${formatDate(c.dateReceived)}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${esc(c.customer || '—')} ${c.unit ? '(' + esc(c.unit) + ')' : ''}</td>
+      <td class="done-desc" onclick="toggleSelectRow(event, '${c.id}')" title="${esc(c.description || '')}">${esc(c.description || '—')}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${formatDate(c.dateEmail)}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${esc(c.dermalog || '—')}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${formatDate(c.dateRefusal)}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')"><span class="status-badge status-${statusKey(c.status)}">${esc(c.status)}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="qbtn-row qbtn-row-edit" onclick="openDrawer('${c.id}')" title="Edit ticket">✏️ Edit</button>
+          <button class="qbtn-row qbtn-row-done" onclick="quickStatusRow('${c.id}','DONE')" title="Mark as Done">✓ Done</button>
+          <button class="qbtn-row qbtn-row-pend" onclick="quickStatusRow('${c.id}','PEND/KIV')" title="Mark as Pend/KIV">⏳ Pend/KIV</button>
+          <button class="qbtn-row qbtn-row-delete" onclick="openDeleteModal('${c.id}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>
   `).join('');
 
   label.textContent = `Showing ${filteredComplaints.length} ticket${filteredComplaints.length !== 1 ? 's' : ''}`;
@@ -207,17 +220,17 @@ function applyFilters() {
 function toggleSelectMode() {
   selectMode = true;
   selectedIds.clear();
-  document.getElementById('complaintsList').classList.add('select-mode');
+  document.querySelectorAll('.col-checkbox').forEach(el => el.style.display = 'table-cell');
   document.getElementById('bulkBar').style.display = 'flex';
   updateSelectedCount();
 }
 function cancelSelectMode() {
   selectMode = false;
   selectedIds.clear();
-  document.getElementById('complaintsList').classList.remove('select-mode');
+  document.querySelectorAll('.col-checkbox').forEach(el => el.style.display = 'none');
   document.getElementById('bulkBar').style.display = 'none';
   document.querySelectorAll('.complaint-checkbox').forEach(cb => { cb.checked = false; });
-  document.querySelectorAll('.complaint-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.done-row').forEach(el => el.classList.remove('selected'));
 }
 function toggleSelect(id) {
   if (selectedIds.has(id)) { selectedIds.delete(id); document.getElementById('ci-' + id).classList.remove('selected'); }
@@ -344,11 +357,12 @@ function handleFiles(e) {
   }
   
   if (hasOversize) {
-    showToast('Some files exceed the 2MB limit and were skipped.', 'error');
+    showToast('limit to 2 mb file', 'error');
   }
   
   attachmentFiles = [...attachmentFiles, ...validFiles];
   renderAttachments();
+  e.target.value = '';
 }
 function renderAttachments() {
   const preview = document.getElementById('attachmentPreview');
@@ -360,10 +374,20 @@ function renderAttachments() {
     placeholder.style.display = 'none';
     preview.innerHTML = attachmentFiles.map((f, i) => {
       const url = URL.createObjectURL(f);
-      return `<img class="attachment-thumb" src="${url}" title="${esc(f.name)}" alt="${esc(f.name)}" />`;
+      return `<img class="attachment-thumb" src="${url}" title="${esc(f.name)}" alt="${esc(f.name)}" onclick="openImageModal('${url}')" style="cursor:pointer;" />`;
     }).join('');
   }
 }
+
+function openImageModal(url) {
+  document.getElementById('imageModalImg').src = url;
+  document.getElementById('imageModal').style.display = 'flex';
+}
+function closeImageModal() {
+  document.getElementById('imageModal').style.display = 'none';
+  document.getElementById('imageModalImg').src = '';
+}
+
 
 /* ===========================
    DELETE
