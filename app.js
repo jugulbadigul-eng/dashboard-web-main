@@ -45,6 +45,7 @@ function getSeedData() {
       status: 'OPEN',
       dateReceived: '2025-01-15',
       customer: 'Test Customer',
+      unit: 'Block A-01',
       description: 'Automated test complaint',
       dateEmail: '',
       dermalog: '',
@@ -58,6 +59,7 @@ function getSeedData() {
       status: 'OPEN',
       dateReceived: '2025-01-15',
       customer: 'ACME',
+      unit: 'Block B-05',
       description: 'Fingerprint scanner issue at gate 3.',
       dateEmail: '',
       dermalog: '',
@@ -190,6 +192,7 @@ function renderComplaints() {
       <td class="done-id" onclick="toggleSelectRow(event, '${c.id}')">${esc(c.id)}</td>
       <td onclick="toggleSelectRow(event, '${c.id}')">${formatDate(c.dateReceived)}</td>
       <td onclick="toggleSelectRow(event, '${c.id}')">${esc(c.customer || '—')}</td>
+      <td onclick="toggleSelectRow(event, '${c.id}')">${esc(c.unit || '—')}</td>
       <td class="done-desc" onclick="toggleSelectRow(event, '${c.id}')" title="${esc(c.description || '')}">${esc(c.description || '—')}</td>
       <td onclick="toggleSelectRow(event, '${c.id}')">${formatDate(c.dateEmail)}</td>
       <td onclick="toggleSelectRow(event, '${c.id}')">${esc(c.dermalog || '—')}</td>
@@ -219,6 +222,7 @@ function applyFilters() {
     const matchSearch = !search ||
       c.id.toLowerCase().includes(search) ||
       (c.customer || '').toLowerCase().includes(search) ||
+      (c.unit || '').toLowerCase().includes(search) ||
       (c.dermalog || '').toLowerCase().includes(search) ||
       (c.description || '').toLowerCase().includes(search);
     const matchStatus = !status || c.status === status;
@@ -307,6 +311,7 @@ function editComplaint(id) {
   document.getElementById('fTicketId').value = c.id;
   document.getElementById('fDateReceived').value = c.dateReceived || '';
   document.getElementById('fCustomer').value = c.customer || '';
+  document.getElementById('fUnit').value = c.unit || '';
   document.getElementById('fDescription').value = c.description || '';
   document.getElementById('fDateEmail').value = c.dateEmail || '';
   document.getElementById('fDermalog').value = c.dermalog || '';
@@ -333,6 +338,7 @@ function saveComplaint(e) {
     status: editId ? (complaints.find(c => c.id === editId)?.status || 'OPEN') : 'OPEN',
     dateReceived: document.getElementById('fDateReceived').value,
     customer: document.getElementById('fCustomer').value.trim(),
+    unit: document.getElementById('fUnit').value.trim(),
     description: document.getElementById('fDescription').value.trim(),
     dateEmail: document.getElementById('fDateEmail').value,
     dermalog: document.getElementById('fDermalog').value.trim(),
@@ -510,6 +516,7 @@ function buildExcelRows(data) {
     'Ticket ID': c.id,
     'Status': c.status,
     'Customer': c.customer || '',
+    'Unit': c.unit || '',
     'Date Received': formatDate(c.dateReceived),
     'Complaint Description': c.description || '',
     'Date Email to Dermalog': formatDate(c.dateEmail),
@@ -603,6 +610,7 @@ function openDrawer(id) {
   document.getElementById('dStatus').value = c.status || 'OPEN';
   document.getElementById('dTicketId').value = c.id;
   document.getElementById('dCustomer').value = c.customer || '';
+  document.getElementById('dUnit').value = c.unit || '';
   document.getElementById('dDateReceived').value = c.dateReceived || '';
   document.getElementById('dDateEmail').value = c.dateEmail || '';
   document.getElementById('dDermalog').value = c.dermalog || '';
@@ -663,6 +671,7 @@ function saveDrawer(e) {
     ...complaints[idx],
     status: document.getElementById('dStatus').value,
     customer: document.getElementById('dCustomer').value.trim(),
+    unit: document.getElementById('dUnit').value.trim(),
     dateReceived: document.getElementById('dDateReceived').value,
     dateEmail: document.getElementById('dDateEmail').value,
     dermalog: document.getElementById('dDermalog').value.trim(),
