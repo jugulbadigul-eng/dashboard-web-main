@@ -231,11 +231,33 @@ function updateSelectedCount() {
 /* ===========================
    FORM (NEW / EDIT)
 =========================== */
+function generateTicketId() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${yyyy}${mm}${dd}`;
+  const prefix = `TCK${dateStr}-`;
+  
+  const todayTickets = complaints.filter(c => c.id.startsWith(prefix));
+  let maxSeq = 0;
+  todayTickets.forEach(c => {
+    const seqStr = c.id.substring(prefix.length);
+    const seq = parseInt(seqStr, 10);
+    if (!isNaN(seq) && seq > maxSeq) {
+      maxSeq = seq;
+    }
+  });
+  const nextSeq = String(maxSeq + 1).padStart(3, '0');
+  return prefix + nextSeq;
+}
+
 function resetForm() {
   document.getElementById('editId').value = '';
   document.getElementById('formTitle').textContent = 'New Complaint';
   document.getElementById('formSubtitle').textContent = 'Enter customer complaint details and Dermalog escalation info.';
   document.getElementById('complaintForm').reset();
+  document.getElementById('fTicketId').value = generateTicketId();
   attachmentFiles = [];
   renderAttachments();
 }
@@ -250,6 +272,7 @@ function editComplaint(id) {
   document.getElementById('fTicketId').value = c.id;
   document.getElementById('fDateReceived').value = c.dateReceived || '';
   document.getElementById('fCustomer').value = c.customer || '';
+  document.getElementById('fUnit').value = c.unit || '';
   document.getElementById('fDescription').value = c.description || '';
   document.getElementById('fDateEmail').value = c.dateEmail || '';
   document.getElementById('fDermalog').value = c.dermalog || '';
@@ -276,6 +299,7 @@ function saveComplaint(e) {
     status: editId ? (complaints.find(c => c.id === editId)?.status || 'OPEN') : 'OPEN',
     dateReceived: document.getElementById('fDateReceived').value,
     customer: document.getElementById('fCustomer').value.trim(),
+    unit: document.getElementById('fUnit').value.trim(),
     description: document.getElementById('fDescription').value.trim(),
     dateEmail: document.getElementById('fDateEmail').value,
     dermalog: document.getElementById('fDermalog').value.trim(),
@@ -307,7 +331,23 @@ function cancelForm() {
 =========================== */
 function handleFiles(e) {
   const newFiles = Array.from(e.target.files);
-  attachmentFiles = [...attachmentFiles, ...newFiles];
+  const validFiles = [];
+  const maxBytes = 2 * 1024 * 1024; // 2MB
+  let hasOversize = false;
+  
+  for (const f of newFiles) {
+    if (f.size > maxBytes) {
+      hasOversize = true;
+    } else {
+      validFiles.push(f);
+    }
+  }
+  
+  if (hasOversize) {
+    showToast('Some files exceed the 2MB limit and were skipped.', 'error');
+  }
+  
+  attachmentFiles = [...attachmentFiles, ...validFiles];
   renderAttachments();
 }
 function renderAttachments() {
@@ -528,6 +568,7 @@ function openDrawer(id) {
   document.getElementById('dStatus').value = c.status || 'OPEN';
   document.getElementById('dTicketId').value = c.id;
   document.getElementById('dCustomer').value = c.customer || '';
+  document.getElementById('dUnit').value = c.unit || '';
   document.getElementById('dDateReceived').value = c.dateReceived || '';
   document.getElementById('dDateEmail').value = c.dateEmail || '';
   document.getElementById('dDermalog').value = c.dermalog || '';
@@ -588,6 +629,7 @@ function saveDrawer(e) {
     ...complaints[idx],
     status: document.getElementById('dStatus').value,
     customer: document.getElementById('dCustomer').value.trim(),
+    unit: document.getElementById('dUnit').value.trim(),
     dateReceived: document.getElementById('dDateReceived').value,
     dateEmail: document.getElementById('dDateEmail').value,
     dermalog: document.getElementById('dDermalog').value.trim(),
