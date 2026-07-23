@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const emailInput = document.getElementById('email').value.trim().toLowerCase();
+      const userInput = (document.getElementById('username') || document.getElementById('email')).value.trim().toLowerCase();
       const passwordInput = document.getElementById('password').value;
       const errorMsg = document.getElementById('errorMsg');
       const loginBtn = document.getElementById('loginBtn');
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
       errorMsg.style.display = 'none';
 
       const users = getUsers();
-      const user = users.find(u => (u.email.toLowerCase() === emailInput || u.username.toLowerCase() === emailInput) && u.password === passwordInput);
+      const user = users.find(u => (u.username.toLowerCase() === userInput || u.email.toLowerCase() === userInput) && u.password === passwordInput);
 
       if (user) {
         // Store current user session in localStorage
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
         window.location.href = 'index.html';
       } else {
-        errorMsg.textContent = 'Invalid email/username or password.';
+        errorMsg.textContent = 'Invalid username or password.';
         errorMsg.style.display = 'block';
       }
     });
